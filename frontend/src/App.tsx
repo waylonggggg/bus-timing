@@ -1,10 +1,11 @@
 import BusComponent from "./BusComponent"
+import NavBar from "@/components/NavBar"
 
 function App() {
   return (
     <>
       <section>
-        <h1>bus app</h1>
+        <NavBar/>
         <BusComponent/>
       </section>
     </>
