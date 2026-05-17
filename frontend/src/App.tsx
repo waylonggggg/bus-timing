@@ -4,7 +4,7 @@ import NavBar from "@/components/NavBar"
 function App() {
   return (
     <>
-      <section>
+      <section className="w-full h-full">
         <NavBar/>
         <BusComponent/>
       </section>

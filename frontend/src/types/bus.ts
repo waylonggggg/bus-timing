@@ -25,9 +25,14 @@ type NextBusDetails = {
   Type: string;
 }
 
-export type CleanedBusTimingData = {
-  serviceNo: string,
-  busOneTiming: number | "-",
-  busTwoTiming: number | "-",
-  busThreeTiming: number | "-"
+export type BusServiceTiming = {
+  busStopCode: string;
+  busServices: BusStopTimings[];
+}
+
+export type BusStopTimings = {
+  serviceNo: string;
+  busOneTiming: number | "-";
+  busTwoTiming: number | "-";
+  busThreeTiming: number | "-";
 }

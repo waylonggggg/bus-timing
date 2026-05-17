@@ -1,34 +1,80 @@
 import { useEffect, useState } from "react"
+import List from "@/components/List"
+import type { RawBusTimingData, BusServiceTiming, BusStopTimings } from "@/types/bus";
+
+function cleanData(parsedData: RawBusTimingData) {
+  let cleaned: BusStopTimings[] = [];
+
+  parsedData.Services.forEach(busService => {
+    const nowTime = new Date().getTime();
+    const busOneTiming = busService.NextBus.EstimatedArrival 
+                         ? Math.floor((new Date(busService.NextBus.EstimatedArrival).getTime() - nowTime) / 1000 / 60)
+                         : "-";
+    const busTwoTiming = busService.NextBus2.EstimatedArrival
+                         ? Math.floor((new Date(busService.NextBus2.EstimatedArrival).getTime() - nowTime) / 1000 /60)
+                         : "-";
+    const busThreeTiming = busService.NextBus3.EstimatedArrival
+                         ? Math.floor((new Date(busService.NextBus3.EstimatedArrival).getTime() - nowTime) / 1000 / 60)
+                         : "-";
+
+    cleaned.push({
+      serviceNo: busService.ServiceNo,
+      busOneTiming: busOneTiming,
+      busTwoTiming: busTwoTiming,
+      busThreeTiming: busThreeTiming
+    })
+  })
+
+  return {
+    busStopCode: parsedData.BusStopCode,
+    busServices: cleaned
+  };
+}
 
 export default function BusComponent() {
-    const [busTiming, setBusTiming] = useState("");
-
-    const url = "https://datamall2.mytransport.sg/ltaodataservice/v3/BusArrival"
-    const DATAMALL_ACCOUNT_KEY = import.meta.env.VITE_DATAMALL_ACCOUNT_KEY;
-		const busStopCode: number = 83139;
+    const [busTiming, setBusTiming] = useState<BusServiceTiming>();
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+    console.log("Backend url: ", BACKEND_URL);
 
     useEffect(() => {
 			const fetchData = async () => {
-				const response = await fetch (url + `?BusStopCode=${busStopCode}`,
-					{ headers: { "AccountKey": DATAMALL_ACCOUNT_KEY } }
-				)
-				console.log("Status: ", response.status);
-				console.log("Body: ", response.body);
+        try {
+          setIsLoading(true);
 
-				if (!response.ok) {
-					throw new Error()
-				}
-			}
-			try {
-				fetchData();
-			} catch (error) {
-				console.log(error)
-			}
+          const url = BACKEND_URL + "/bus-timings";
+          const response = await fetch(url);
+
+          if (!response.ok) {
+            throw new Error()
+          }
+
+          const data = await response.json();
+          console.log("Bus data: ", data);
+          const busTimingData = cleanData(data);
+          console.log(busTimingData);
+          setBusTiming(busTimingData);
+          
+        } catch (error) {
+          console.log(error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+
+      fetchData();
 		}, [])
 
     return (
-        <div>
-            Bus component
+        <div className="flex flex-col items-center">
+          {isLoading || !busTiming ? (
+            <div>Loading</div>
+          ) : (
+          <>
+            <h1>Bus stop {busTiming.busStopCode}</h1>
+            <List busTimingData={busTiming!}></List>
+          </>
+          )}
         </div>
     )
 }
