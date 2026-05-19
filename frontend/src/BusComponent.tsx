@@ -7,15 +7,13 @@ function cleanData(parsedData: RawBusTimingData) {
 
   parsedData.Services.forEach(busService => {
     const nowTime = new Date().getTime();
-    const busOneTiming = busService.NextBus.EstimatedArrival 
-                         ? Math.floor((new Date(busService.NextBus.EstimatedArrival).getTime() - nowTime) / 1000 / 60)
-                         : "-";
-    const busTwoTiming = busService.NextBus2.EstimatedArrival
-                         ? Math.floor((new Date(busService.NextBus2.EstimatedArrival).getTime() - nowTime) / 1000 /60)
-                         : "-";
-    const busThreeTiming = busService.NextBus3.EstimatedArrival
-                         ? Math.floor((new Date(busService.NextBus3.EstimatedArrival).getTime() - nowTime) / 1000 / 60)
-                         : "-";
+    const toMinutes = (arrival: string) => {
+      return arrival ? Math.floor((new Date(arrival).getTime() - nowTime) / 1000 / 60)
+              : "-"
+    };
+
+    const [busOneTiming, busTwoTiming, busThreeTiming] = 
+        [busService.NextBus, busService.NextBus2, busService.NextBus3].map(bus => toMinutes(bus.EstimatedArrival));
 
     cleaned.push({
       serviceNo: busService.ServiceNo,
