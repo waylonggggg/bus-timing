@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import List from "@/components/List"
+import List from "@/components/BusStopList"
 import type { RawBusTimingData, BusServiceTiming, BusStopTimings } from "@/types/bus";
 
 function cleanData(parsedData: RawBusTimingData) {
@@ -69,7 +69,6 @@ export default function BusComponent() {
             <div>Loading</div>
           ) : (
           <>
-            <h1>Bus stop {busTiming.busStopCode}</h1>
             <List busTimingData={busTiming!}></List>
           </>
           )}
