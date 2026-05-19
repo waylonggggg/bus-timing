@@ -1,36 +1,39 @@
 import { useEffect, useState } from "react"
 import List from "@/components/BusStopList"
-import type { RawBusTimingData, BusServiceTiming, BusStopTimings } from "@/types/bus";
+import type { RawBusTimingData, BusServiceInfo, BusStopTimings, NextBusDetails, BusArrivalInfo } from "@/types/bus";
 
-function cleanData(parsedData: RawBusTimingData) {
-  let cleaned: BusStopTimings[] = [];
-
-  parsedData.Services.forEach(busService => {
+function cleanData(parsedData: RawBusTimingData): BusStopTimings {
+  const cleaned: BusServiceInfo[] = parsedData.Services.map(busService => {
     const nowTime = new Date().getTime();
-    const toMinutes = (arrival: string) => {
-      return arrival ? Math.floor((new Date(arrival).getTime() - nowTime) / 1000 / 60)
-              : "-"
-    };
 
-    const [busOneTiming, busTwoTiming, busThreeTiming] = 
-        [busService.NextBus, busService.NextBus2, busService.NextBus3].map(bus => toMinutes(bus.EstimatedArrival));
+    const parseBusInfo = (nextBusDetails: NextBusDetails): BusArrivalInfo => {
+      const timing = nextBusDetails.EstimatedArrival 
+                     ? Math.floor((new Date(nextBusDetails.EstimatedArrival).getTime() - nowTime) / 1000 / 60)
+                     : "-"
+      const load = nextBusDetails.Load;
+      
+      return {
+        timing: timing,
+        load: load || "-"
+      }
+    }
 
-    cleaned.push({
+    return {
       serviceNo: busService.ServiceNo,
-      busOneTiming: busOneTiming,
-      busTwoTiming: busTwoTiming,
-      busThreeTiming: busThreeTiming
-    })
+      nextBusOne: parseBusInfo(busService.NextBus),
+      nextBusTwo: parseBusInfo(busService.NextBus2),
+      nextBusThree: parseBusInfo(busService.NextBus3),
+    }
   })
 
   return {
     busStopCode: parsedData.BusStopCode,
     busServices: cleaned
-  };
+  }
 }
 
 export default function BusComponent() {
-    const [busTiming, setBusTiming] = useState<BusServiceTiming>();
+    const [busTiming, setBusTiming] = useState<BusStopTimings>();
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
     console.log("Backend url: ", BACKEND_URL);

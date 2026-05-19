@@ -12,7 +12,7 @@ type BusService = {
   NextBus3: NextBusDetails;
 }
 
-type NextBusDetails = {
+export type NextBusDetails = {
   OriginCode: string;
   DestinationCode: string;
   EstimatedArrival: string;
@@ -20,19 +20,24 @@ type NextBusDetails = {
   Latitude: string;
   Longitude: string;
   VisitNumber: string;
-  Load: string;
+  Load: "SEA" | "SDA" | "LSD" | "";
   Feature: string;
   Type: string;
 }
 
-export type BusServiceTiming = {
+export type BusStopTimings = {
   busStopCode: string;
-  busServices: BusStopTimings[];
+  busServices: BusServiceInfo[];
 }
 
-export type BusStopTimings = {
+export type BusServiceInfo = {
   serviceNo: string;
-  busOneTiming: number | "-";
-  busTwoTiming: number | "-";
-  busThreeTiming: number | "-";
+  nextBusOne: BusArrivalInfo;
+  nextBusTwo: BusArrivalInfo;
+  nextBusThree: BusArrivalInfo;
+}
+
+export type BusArrivalInfo = {
+  timing: number | "-";
+  load: "SEA" | "SDA" | "LSD" | "-";
 }
