@@ -4,6 +4,10 @@ import { cors } from 'hono/cors'
 import 'dotenv/config'
 import { HTTPException } from 'hono/http-exception'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
+import busStops from "./data/bus_stops.json" with { type: "json"}
+import { getDistance } from './utils.js'
+
+console.log("Bus stop list: ", busStops);
 
 const app = new Hono().basePath('/api')
 
@@ -33,6 +37,32 @@ app.get('/bus-timings', async (c) => {
       const errorResponse = new Response("LTA bus timing error");
       throw new HTTPException(502, { res: errorResponse});
   }
+})
+
+app.get('/nearest-bus-stop', async (c) => {
+  const { latitude, longitude } = c.req.query();
+
+  let nearestBusStopCode = null;
+  let nearestBusStopDescription = null;
+  let nearestBusStopDistance = null;
+
+  for (const busStop of busStops.busStops) {
+    const busStopLat = busStop.Latitude;
+    const busStopLon = busStop.Longitude;
+
+    const distance = getDistance(parseFloat(latitude), parseFloat(longitude), busStopLat, busStopLon);
+
+    if (nearestBusStopDistance == null || distance < nearestBusStopDistance) {
+      nearestBusStopCode = busStop.BusStopCode;
+      nearestBusStopDescription = busStop.Description;
+      nearestBusStopDistance = distance;
+    }
+  }
+
+  return c.json({
+    nearestBusStopCode: nearestBusStopCode,
+    nearestBusStopDescription: nearestBusStopDescription
+  })
 })
 
 // app.onError((err, c) => {
