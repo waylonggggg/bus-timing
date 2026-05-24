@@ -1,7 +1,12 @@
-export type RawBusTimingData = {
+export type BusTimingResponse = {
   "odata.metadata": string;
   BusStopCode: string;
   Services: BusService[];
+}
+
+export type NearestBusStopResponse = {
+  nearestBusStopCode: string;
+  nearestBusStopName: string;
 }
 
 type BusService = {
@@ -41,3 +46,8 @@ export type BusArrivalInfo = {
   timing: number | "Arriving" | "-";
   load: "SEA" | "SDA" | "LSD" | "-";
 }
+
+export type Coordinates = {
+  latitude: number;
+  longitude: number;
+};

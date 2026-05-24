@@ -1,9 +1,18 @@
-import { useEffect, useState } from "react"
-import BusStopList from "@/components/BusStopList"
-import type { RawBusTimingData, BusServiceInfo, BusStopTimings, NextBusDetails, BusArrivalInfo } from "@/types/bus";
+import { useEffect, useState } from "react";
+import BusStopList from "@/components/BusStopList";
+import type {
+  BusTimingResponse,
+  BusServiceInfo,
+  BusStopTimings,
+  NextBusDetails,
+  BusArrivalInfo,
+  NearestBusStopResponse,
+  Coordinates
+} from "@/types/bus";
+import { fetchNearestBusStop, fetchBusTiming } from "./api/bus";
 
-function cleanData(data: RawBusTimingData): BusStopTimings {
-  const cleaned: BusServiceInfo[] = data.Services.map(busService => {
+function cleanData(data: BusTimingResponse): BusStopTimings {
+  const cleaned: BusServiceInfo[] = data.Services.map((busService) => {
     const nowTime = new Date().getTime();
 
     const parseTiming = (estimatedArrival: string) => {
@@ -11,131 +20,86 @@ function cleanData(data: RawBusTimingData): BusStopTimings {
 
       const timing = Math.floor((arrivalTime - nowTime) / 1000 / 60);
       return timing <= 0 ? "Arriving" : timing;
-    }
+    };
 
     const parseBusInfo = (nextBusDetails: NextBusDetails): BusArrivalInfo => {
-      const timing = nextBusDetails.EstimatedArrival 
-                     ? parseTiming(nextBusDetails.EstimatedArrival)
-                     : "-"
+      const timing = nextBusDetails.EstimatedArrival
+        ? parseTiming(nextBusDetails.EstimatedArrival)
+        : "-";
       const load = nextBusDetails.Load ? nextBusDetails.Load : "-";
 
       return {
         timing: timing,
-        load: load
-      }
-    }
+        load: load,
+      };
+    };
 
     return {
       serviceNo: busService.ServiceNo,
       nextBusOne: parseBusInfo(busService.NextBus),
       nextBusTwo: parseBusInfo(busService.NextBus2),
       nextBusThree: parseBusInfo(busService.NextBus3),
-    }
-  })
+    };
+  });
 
   return {
     busStopCode: data.BusStopCode,
-    busServices: cleaned
-  }
-}
-
-type Coordinates = {
-  latitude: number;
-  longitude: number;
+    busServices: cleaned,
+  };
 }
 
 export default function BusTiming() {
-    const [busTiming, setBusTiming] = useState<BusStopTimings>();
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [geolocation, setGeolocation] = useState<Coordinates>();
-    const [nearestBusStopCode, setNearestBusStopCode] = useState<string>();
-    const [nearestBusStopName, setNearestBusStopName] = useState<string>();
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+  const [busTiming, setBusTiming] = useState<BusStopTimings>();
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [nearestBusStopName, setNearestBusStopName] = useState<string>();
 
-    useEffect(() => {
-      const success = (pos: GeolocationPosition) => {
-        console.log(pos);
-        const coords: Coordinates = {
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-        }
-        setGeolocation(coords);
-        fetchNearestBusStop(coords);
+  useEffect(() => {
+    const loadBusTiming = async (coords: Coordinates) => {
+      try {
+        setIsLoading(true);
+
+        const nearestBusStop: NearestBusStopResponse = await fetchNearestBusStop(coords);
+        const { nearestBusStopCode, nearestBusStopName } = nearestBusStop;
+        setNearestBusStopName(nearestBusStopName);
+
+        const busTimingData: BusTimingResponse = await fetchBusTiming(nearestBusStopCode);
+        setBusTiming(cleanData(busTimingData));
+
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
       }
+    }
 
-      const fail = (err: GeolocationPositionError) => {
-        console.log(err);
-        return
-      }
-      navigator.geolocation.getCurrentPosition(success, fail);
+    const getPosSuccess = (pos: GeolocationPosition) => {
+      const coords: Coordinates = {
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude,
+      };
+      loadBusTiming(coords);
+    };
 
-      const fetchNearestBusStop = async (coord: Coordinates) => {
-        const url = new URL(BACKEND_URL + '/nearest-bus-stop');
-        url.searchParams.append("latitude", coord.latitude.toString());
-        url.searchParams.append("longitude", coord.longitude.toString());
+    const getPosError = (err: GeolocationPositionError) => {
+      console.log(err);
+      return;
+    };
+    navigator.geolocation.getCurrentPosition(getPosSuccess, getPosError);
 
-        try {
-          const response = await fetch(url);
+  }, []);
 
-          if (!response.ok) {
-            throw new Error("Error fetching nearest bus stop");
-          }
-          
-          const data = await response.json();
-          const { nearestBusStopCode, nearestBusStopName } = data;
-          
-          setNearestBusStopCode(nearestBusStopCode);
-          setNearestBusStopName(nearestBusStopName);
-
-          console.log(nearestBusStopCode);
-          console.log(nearestBusStopName);
-
-          fetchBusTiming(nearestBusStopCode);
-          
-        } catch (error) {
-          console.log(error);
-        } finally {
-
-        }
-      }
-      
-			const fetchBusTiming = async (nearestBusStopCode: string) => {
-        try {
-          setIsLoading(true);
-
-          const url = new URL(BACKEND_URL + "/bus-timings");
-          url.searchParams.append("busStopCode", nearestBusStopCode);
-
-          const response = await fetch(url);
-
-          if (!response.ok) {
-            throw new Error()
-          }
-
-          const data = await response.json();
-          const busTimingData = cleanData(data);
-          setBusTiming(busTimingData);
-          
-        } catch (error) {
-          console.log(error);
-        } finally {
-          setIsLoading(false);
-        }
-      }
-      
-		}, [])
-
-    return (
-        <div className="flex flex-col items-center">
-          {isLoading || !busTiming || !nearestBusStopName ? (
-            <div>Loading</div>
-          ) : (
-          <>
-            <BusStopList busStopName={nearestBusStopName!} busTimingData={busTiming!}></BusStopList>
-          </>
-          )}
-        </div>
-    )
+  return (
+    <div className="flex flex-col items-center">
+      {isLoading || !busTiming || !nearestBusStopName ? (
+        <div>Loading</div>
+      ) : (
+        <>
+          <BusStopList
+            busStopName={nearestBusStopName!}
+            busTimingData={busTiming!}
+          ></BusStopList>
+        </>
+      )}
+    </div>
+  );
 }
-
-
