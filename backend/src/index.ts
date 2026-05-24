@@ -15,7 +15,7 @@ app.use('*', cors({ origin: process.env.FRONTEND_URL}))
 
 app.get('/bus-timings', async (c) => {
   const url: string = "https://datamall2.mytransport.sg/ltaodataservice/v3/BusArrival";
-  const busStopCode: number = 83139;
+  const { busStopCode } = c.req.query();
 
   try {
     const response = await fetch(url + `?BusStopCode=${busStopCode}`,
@@ -43,7 +43,7 @@ app.get('/nearest-bus-stop', async (c) => {
   const { latitude, longitude } = c.req.query();
 
   let nearestBusStopCode = null;
-  let nearestBusStopDescription = null;
+  let nearestBusStopName = null;
   let nearestBusStopDistance = null;
 
   for (const busStop of busStops.busStops) {
@@ -54,14 +54,14 @@ app.get('/nearest-bus-stop', async (c) => {
 
     if (nearestBusStopDistance == null || distance < nearestBusStopDistance) {
       nearestBusStopCode = busStop.BusStopCode;
-      nearestBusStopDescription = busStop.Description;
+      nearestBusStopName = busStop.Description;
       nearestBusStopDistance = distance;
     }
   }
 
   return c.json({
     nearestBusStopCode: nearestBusStopCode,
-    nearestBusStopDescription: nearestBusStopDescription
+    nearestBusStopName: nearestBusStopName
   })
 })
 

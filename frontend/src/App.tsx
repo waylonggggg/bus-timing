@@ -1,4 +1,4 @@
-import BusComponent from "./BusComponent"
+import BusTiming from "./BusTiming"
 import NavBar from "@/components/NavBar"
 
 function App() {
@@ -6,7 +6,7 @@ function App() {
     <>
       <section className="w-full h-full">
         <NavBar/>
-        <BusComponent/>
+        <BusTiming/>
       </section>
     </>
   )
