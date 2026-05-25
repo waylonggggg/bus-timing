@@ -44,7 +44,10 @@ function cleanData(data: BusTimingResponse): BusStopTimings {
 
   return {
     busStopCode: data.BusStopCode,
-    busServices: cleaned,
+    busServices: cleaned.sort((a, b) => a.serviceNo.localeCompare(b.serviceNo, "en", {
+      numeric: true,
+      sensitivity: "base"
+    }))
   };
 }
 
