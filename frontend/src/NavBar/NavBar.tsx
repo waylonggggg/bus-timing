@@ -7,7 +7,7 @@ export default function NavBar() {
         </button>
       </div>
       <div className="flex flex-1 justify-center">
-        <a className="btn btn-ghost text-xl">BUZZ APPPP</a>
+        <a href="/" className="btn btn-ghost text-xl">BUZZ APPPP</a>
       </div>
       <div className="flex-none">
         <button className="btn btn-square btn-ghost">

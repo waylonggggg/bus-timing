@@ -1,5 +1,5 @@
-import BusTiming from "./BusTiming"
-import NavBar from "@/components/NavBar"
+import BusTiming from "@/BusStopTiming"
+import NavBar from "@/NavBar"
 
 function App() {
   return (

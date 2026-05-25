@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import BusStopList from "@/components/BusStopList";
+import BusStopList from "@/BusStopTiming/BusStopList";
 import type {
   BusTimingResponse,
   BusServiceInfo,
@@ -9,7 +9,7 @@ import type {
   NearestBusStopResponse,
   Coordinates
 } from "@/types/bus";
-import { fetchNearestBusStop, fetchBusTiming } from "./api/bus";
+import { fetchNearestBusStop, fetchBusTiming } from "../api/bus";
 
 function cleanData(data: BusTimingResponse): BusStopTimings {
   const cleaned: BusServiceInfo[] = data.Services.map((busService) => {
