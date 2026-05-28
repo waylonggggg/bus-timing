@@ -1,19 +1,68 @@
+"use client"
+
+import * as React from "react"
+
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu"
+
 export default function NavBar() {
   return (
-    <div className="navbar bg-base-100 shadow-sm">
-      <div className="flex-none">
-        <button className="btn btn-square btn-ghost">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block h-5 w-5 stroke-current"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path> </svg>
-        </button>
-      </div>
-      <div className="flex flex-1 justify-center">
-        <a href="/" className="btn btn-ghost text-xl">BUZZ APPPP</a>
-      </div>
-      <div className="flex-none">
-        <button className="btn btn-square btn-ghost">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block h-5 w-5 stroke-current"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path> </svg>
-        </button>
-      </div>
-    </div>
+    <NavigationMenu>
+      <NavigationMenuList>
+        <NavigationMenuItem>
+          <NavigationMenuTrigger>Getting started</NavigationMenuTrigger>
+          <NavigationMenuContent>
+            <ul className="w-96">
+              <ListItem href="/docs" title="Introduction">
+                Re-usable components built with Tailwind CSS.
+              </ListItem>
+              <ListItem href="/docs/installation" title="Installation">
+                How to install dependencies and structure your app.
+              </ListItem>
+              <ListItem href="/docs/primitives/typography" title="Typography">
+                Styles for headings, paragraphs, lists...etc
+              </ListItem>
+            </ul>
+          </NavigationMenuContent>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+            <a href="/">test 1</a>
+          </NavigationMenuLink>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+            <a href="/">test 2</a>
+          </NavigationMenuLink>
+        </NavigationMenuItem>
+      </NavigationMenuList>
+    </NavigationMenu>
+  )
+}
+
+function ListItem({
+  title,
+  children,
+  href,
+  ...props
+}: React.ComponentPropsWithoutRef<"li"> & { href: string }) {
+  return (
+    <li {...props}>
+      <NavigationMenuLink asChild>
+        <a href={href}>
+          <div className="flex flex-col gap-1 text-sm">
+            <div className="leading-none font-medium">{title}</div>
+            <div className="line-clamp-2 text-muted-foreground">{children}</div>
+          </div>
+        </a>
+      </NavigationMenuLink>
+    </li>
   )
 }

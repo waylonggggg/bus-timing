@@ -7,11 +7,16 @@ const loadColor: Record<"SEA" | "SDA" | "LSD" | "-", string> = {
   "-": ""
 }
 
-export default function BusStopList({ busStopName, busTimingData } : { busStopName: string, busTimingData: BusStopTimings}) {
+type BusStopListProps = {
+  busStopName: string;
+  busTimingData: BusStopTimings;
+}
+
+export default function BusStopList({ busStopName, busTimingData } : BusStopListProps) {
   return (
-    <div className="w-2xl rounded-box shadow-md">
-      <div className="text-3xl font-semibold text-center p-4 pb-2 tracking-wide">{busStopName} - {busTimingData.busStopCode}</div>
-      <div className="flex flex-col border rounded-md p-2 gap-y-3">
+    <div className="flex flex-col p-4 w-2xl rounded-xl gap-y-3">
+      <div className="text-3xl font-semibold text-center tracking-wide">{busStopName} - {busTimingData.busStopCode}</div>
+      <div className="flex flex-col border rounded-md p-3 gap-y-3">
         {busTimingData.busServices.map((busService) => {
           return (
               <div key={busService.serviceNo} className="flex border-b-gray-950">
