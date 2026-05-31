@@ -43,7 +43,7 @@ export type BusServiceInfo = {
 }
 
 export type BusArrivalInfo = {
-  timing: number | "Arriving" | "-";
+  timing: number | "Arr" | "-";
   load: "SEA" | "SDA" | "LSD" | "-";
 }
 

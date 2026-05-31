@@ -8,7 +8,7 @@ export function cleanData(data: BusTimingResponse): BusStopTimings {
       const arrivalTime = new Date(estimatedArrival).getTime();
 
       const timing = Math.floor((arrivalTime - nowTime) / 1000 / 60);
-      return timing <= 0 ? "Arriving" : timing;
+      return timing <= 0 ? "Arr" : timing;
     };
 
     const parseBusInfo = (nextBusDetails: NextBusDetails): BusArrivalInfo => {
