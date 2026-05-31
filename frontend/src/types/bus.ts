@@ -1,13 +1,13 @@
 export type BusTimingResponse = {
-  "odata.metadata": string;
+  'odata.metadata': string;
   BusStopCode: string;
   Services: BusService[];
-}
+};
 
 export type NearestBusStopResponse = {
   nearestBusStopCode: string;
   nearestBusStopName: string;
-}
+};
 
 type BusService = {
   ServiceNo: string;
@@ -15,7 +15,7 @@ type BusService = {
   NextBus: NextBusDetails;
   NextBus2: NextBusDetails;
   NextBus3: NextBusDetails;
-}
+};
 
 export type NextBusDetails = {
   OriginCode: string;
@@ -25,27 +25,27 @@ export type NextBusDetails = {
   Latitude: string;
   Longitude: string;
   VisitNumber: string;
-  Load: "SEA" | "SDA" | "LSD" | "";
+  Load: 'SEA' | 'SDA' | 'LSD' | '';
   Feature: string;
   Type: string;
-}
+};
 
 export type BusStopTimings = {
   busStopCode: string;
   busServices: BusServiceInfo[];
-}
+};
 
 export type BusServiceInfo = {
   serviceNo: string;
   nextBusOne: BusArrivalInfo;
   nextBusTwo: BusArrivalInfo;
   nextBusThree: BusArrivalInfo;
-}
+};
 
 export type BusArrivalInfo = {
-  timing: number | "Arr" | "-";
-  load: "SEA" | "SDA" | "LSD" | "-";
-}
+  timing: number | 'Arr' | '-';
+  load: 'SEA' | 'SDA' | 'LSD' | '-';
+};
 
 export type Coordinates = {
   latitude: number;

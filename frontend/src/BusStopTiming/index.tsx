@@ -1,1 +1,1 @@
-export { default } from "./BusTiming"
+export { default } from './BusTiming';
