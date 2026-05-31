@@ -1,18 +1,37 @@
-import fs from "node:fs";
-import path from "node:path"
+import fs from 'node:fs';
+import path from 'node:path';
+import busStopsData from './data/bus_stops.json' with { type: 'json' };
+import 'dotenv/config';
 
-export function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+type BusStop = {
+  BusStopCode: string;
+  RoadName: string;
+  Description: string;
+  Latitude: number;
+  Longitude: number;
+  ServiceNos?: string[];
+};
+
+export function getDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+) {
   // haversine formnula that calculates great-circle distance between 2 coordinates using
   // latitude and longitude
   // https://www.movable-type.co.uk/scripts/latlong.html
 
   const earthRadius = 6317e3; // metres
-  const latDelta = (lat1 - lat2) * Math.PI / 180;
-  const lonDelta = (lon1 - lon2) * Math.PI / 180;
+  const latDelta = ((lat1 - lat2) * Math.PI) / 180;
+  const lonDelta = ((lon1 - lon2) * Math.PI) / 180;
 
-  const a = Math.sin(latDelta / 2) * Math.sin(latDelta / 2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(lonDelta / 2) * Math.sin(lonDelta / 2);
+  const a =
+    Math.sin(latDelta / 2) * Math.sin(latDelta / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(lonDelta / 2) *
+      Math.sin(lonDelta / 2);
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
@@ -28,23 +47,25 @@ type BusStopDetails = {
   Description: string;
   Latitude: number;
   Longitude: number;
-}
+};
 
 async function fetchAllBusStops() {
   let skips = 0;
   let busStops: BusStopDetails[] = [];
 
   while (true) {
-    const url = new URL("https://datamall2.mytransport.sg/ltaodataservice/BusStops");
-    if (skips != 0) url.searchParams.append("$skip", skips.toString());
+    const url = new URL(
+      'https://datamall2.mytransport.sg/ltaodataservice/BusStops',
+    );
+    if (skips != 0) url.searchParams.append('$skip', skips.toString());
 
     try {
       const response = await fetch(url.toString(), {
-        headers: { "AccountKey": process.env.DATAMALL_API_KEY! }
+        headers: { AccountKey: process.env.DATAMALL_API_KEY! },
       });
 
       if (!response.ok) {
-        throw new Error("Error fetching from lta");
+        throw new Error('Error fetching from lta');
         break;
       }
 
@@ -62,9 +83,62 @@ async function fetchAllBusStops() {
     }
   }
 
-  const busStopsJson = JSON.stringify( { busStops: busStops }, null, 2);
+  const busStopsJson = JSON.stringify({ busStops: busStops }, null, 2);
 
-  fs.writeFile(path.resolve(".", "bus_stops.json"), busStopsJson, err => {
+  fs.writeFile(path.resolve('.', 'bus_stops.json'), busStopsJson, (err) => {
     console.log(err);
-  })
+  });
 }
+
+// Util function that is used after the above fectchAllBusStops is called, to fetch the
+// bus services that are present at each bus stop
+async function fetchBusServices() {
+  const busStops = busStopsData.busStops as BusStop[];
+
+  try {
+    for (const busStop of busStops) {
+      const busStopCode: string = busStop.BusStopCode;
+      const url = new URL(
+        'https://datamall2.mytransport.sg/ltaodataservice/v3/BusArrival',
+      );
+      url.searchParams.append('BusStopCode', busStopCode);
+
+      const response = await fetch(url, {
+        headers: { AccountKey: process.env.DATAMALL_API_KEY! },
+      });
+
+      if (!response.ok) {
+        throw new Error('Error fetching from lta');
+      }
+
+      const data = await response.json();
+      console.log(data);
+      const busServiceNos = [
+        ...data.Services.map((service) => service.ServiceNo),
+      ];
+
+      busStop.ServiceNos = busServiceNos.sort((a, b) =>
+        a.localeCompare(b, 'en', {
+          numeric: true,
+          sensitivity: 'base',
+        }),
+      );
+    }
+
+    const busStopJson = JSON.stringify({ busStops: busStops }, null, 2);
+
+    fs.writeFile(
+      path.resolve('.', 'data/bus_stops.json'),
+      busStopJson,
+      (err) => {
+        console.log(err);
+      },
+    );
+  } catch (error) {
+    if (error instanceof Error) {
+      console.log(error.message);
+    }
+  }
+}
+
+fetchBusServices();
