@@ -7,6 +7,7 @@ export type BusTimingResponse = {
 export type NearestBusStopResponse = {
   nearestBusStopCode: string;
   nearestBusStopName: string;
+  nearestBusStopServiceNos: string[];
 };
 
 type BusService = {

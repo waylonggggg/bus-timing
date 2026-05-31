@@ -4,9 +4,9 @@ import { LocateFixedIcon } from 'lucide-react';
 
 const loadColor: Record<'SEA' | 'SDA' | 'LSD' | '-', string> = {
   SEA: 'text-green-500',
-  SDA: 'text-orange-500',
+  SDA: 'text-yellow-500',
   LSD: 'text-red-500',
-  '-': '',
+  '-': ''
 };
 
 type BusStopListProps = {
@@ -18,7 +18,7 @@ type BusStopListProps = {
 export default function BusStopList({
   busStopName,
   busTimingData,
-  handleClick,
+  handleClick
 }: BusStopListProps) {
   return (
     <div className='flex flex-col p-4 w-2xl rounded-xl gap-y-3'>
@@ -26,7 +26,7 @@ export default function BusStopList({
         {busStopName} - {busTimingData.busStopCode}
       </div>
       <div className='flex flex-col border rounded-md p-3 gap-y-3'>
-        {busTimingData.busServices.map((busService) => {
+        {busTimingData.busServices.map(busService => {
           return (
             <div key={busService.serviceNo} className='flex border-b-gray-950'>
               <div className='w-16 text-2xl'>{busService.serviceNo}</div>

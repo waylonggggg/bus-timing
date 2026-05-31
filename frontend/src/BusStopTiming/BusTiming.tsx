@@ -4,7 +4,7 @@ import type {
   BusTimingResponse,
   BusStopTimings,
   NearestBusStopResponse,
-  Coordinates,
+  Coordinates
 } from '@/types/bus';
 import { cleanData } from '@/utils';
 import { fetchNearestBusStop, fetchBusTiming } from '../api/bus';
@@ -15,6 +15,7 @@ export default function BusTiming() {
   const [busTiming, setBusTiming] = useState<BusStopTimings>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [nearestBusStopName, setNearestBusStopName] = useState<string>();
+  useState<string[]>();
   const [error, setError] = useState<string>();
   const isFirstSuccessfulLoad = useRef<boolean>(null);
 
@@ -29,12 +30,16 @@ export default function BusTiming() {
     try {
       const nearestBusStop: NearestBusStopResponse =
         await fetchNearestBusStop(coords);
-      const { nearestBusStopCode, nearestBusStopName } = nearestBusStop;
+      const {
+        nearestBusStopCode,
+        nearestBusStopName,
+        nearestBusStopServiceNos
+      } = nearestBusStop;
       setNearestBusStopName(nearestBusStopName);
 
       const busTimingData: BusTimingResponse =
         await fetchBusTiming(nearestBusStopCode);
-      const cleanedData = cleanData(busTimingData);
+      const cleanedData = cleanData(busTimingData, nearestBusStopServiceNos);
       setBusTiming(cleanedData);
 
       if (!isFirstSuccessfulLoad.current) {
@@ -64,7 +69,7 @@ export default function BusTiming() {
     setError('');
     const coords: Coordinates = {
       latitude: pos.coords.latitude,
-      longitude: pos.coords.longitude,
+      longitude: pos.coords.longitude
     };
     loadBusTiming(coords);
   };
@@ -86,7 +91,7 @@ export default function BusTiming() {
     navigator.geolocation.getCurrentPosition(getPosSuccess, getPosError, {
       enableHighAccuracy: false,
       timeout: 30000,
-      maximumAge: 60000,
+      maximumAge: 60000
     });
   };
 
@@ -100,7 +105,7 @@ export default function BusTiming() {
       navigator.geolocation.getCurrentPosition(getPosSuccess, getPosError, {
         enableHighAccuracy: false,
         timeout: 30000,
-        maximumAge: 60000,
+        maximumAge: 60000
       });
 
       timeoutId = setTimeout(loadBusTimingLoop, 30000);
