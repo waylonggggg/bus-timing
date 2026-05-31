@@ -81,6 +81,15 @@ export default function BusTiming() {
     // setIsLoading(false)
   };
 
+  const handleClick = () => {
+    console.log('manually fetching');
+    navigator.geolocation.getCurrentPosition(getPosSuccess, getPosError, {
+      enableHighAccuracy: false,
+      timeout: 30000,
+      maximumAge: 60000
+    });
+  };
+
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout>;
 
@@ -109,6 +118,10 @@ export default function BusTiming() {
   if (isLoading) return <SkeletonLoader />;
 
   return (
-    <BusStopList busStopName={nearestBusStopName!} busTimingData={busTiming!} />
+    <BusStopList
+      busStopName={nearestBusStopName!}
+      busTimingData={busTiming!}
+      handleClick={handleClick}
+    />
   );
 }
