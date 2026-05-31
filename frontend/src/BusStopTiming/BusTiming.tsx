@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import BusStopList from '@/BusStopTiming/BusStopList';
 import type {
   BusTimingResponse,
@@ -16,6 +16,14 @@ export default function BusTiming() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [nearestBusStopName, setNearestBusStopName] = useState<string>();
   const [error, setError] = useState<string>();
+  const isFirstSuccessfulLoad = useRef<boolean>(null);
+
+  // Not required honestly but good practice, especially if the value were to be computationally expensive
+  // i.e. useref is called every render but when it sees a current value, its ignored, but the value to be
+  // passed in is always evaluted, hence can be expensive if its like a huge object
+  if (isFirstSuccessfulLoad.current == null) {
+    isFirstSuccessfulLoad.current = false;
+  }
 
   const loadBusTiming = async (coords: Coordinates) => {
     try {
@@ -28,11 +36,18 @@ export default function BusTiming() {
         await fetchBusTiming(nearestBusStopCode);
       const cleanedData = cleanData(busTimingData);
       setBusTiming(cleanedData);
+
+      if (!isFirstSuccessfulLoad.current) {
+        isFirstSuccessfulLoad.current = true;
+      }
     } catch (error) {
       console.log('Error: ', error);
 
       if (error instanceof Error) {
-        setError(error.message);
+        // dont want error to popup after the first successful load
+        if (!isFirstSuccessfulLoad.current) {
+          setError(error.message);
+        }
       } else {
         return;
       }
@@ -60,7 +75,7 @@ export default function BusTiming() {
 
     // only sets geo error when no successful fetches were made beforehand,
     // we dont want the geo error to popup after the first initial successful geo fetch
-    if (!busTiming) {
+    if (!isFirstSuccessfulLoad.current) {
       setError(err.message);
     }
     // setIsLoading(false)
@@ -70,6 +85,7 @@ export default function BusTiming() {
     let timeoutId: ReturnType<typeof setTimeout>;
 
     function loadBusTimingLoop() {
+      console.log('successfully loaded: ', isFirstSuccessfulLoad);
       const date = new Date();
       console.log('fetching :', date);
       navigator.geolocation.getCurrentPosition(getPosSuccess, getPosError, {
