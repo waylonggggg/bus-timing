@@ -1,69 +1,75 @@
-import { serve } from '@hono/node-server'
-import { Hono } from 'hono'
-import { cors } from 'hono/cors'
-import 'dotenv/config'
-import { HTTPException } from 'hono/http-exception'
-import type { ContentfulStatusCode } from 'hono/utils/http-status'
-import busStops from "./data/bus_stops.json" with { type: "json"}
-import { getDistance } from './utils.js'
+import { serve } from '@hono/node-server';
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import 'dotenv/config';
+import { HTTPException } from 'hono/http-exception';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import busStops from './data/bus_stops.json' with { type: 'json' };
+import { getDistance } from './utils.js';
 
-console.log("Bus stop list: ", busStops);
+const app = new Hono().basePath('/api');
 
-const app = new Hono().basePath('/api')
-
-app.use('*', cors({ origin: process.env.FRONTEND_URL}))
+app.use('*', cors({ origin: process.env.FRONTEND_URL }));
 
 app.get('/bus-timings', async (c) => {
-  const url: string = "https://datamall2.mytransport.sg/ltaodataservice/v3/BusArrival";
+  const url: string =
+    'https://datamall2.mytransport.sg/ltaodataservice/v3/BusArrival';
   const { busStopCode } = c.req.query();
 
   try {
-    const response = await fetch(url + `?BusStopCode=${busStopCode}`,
-      { headers : { "AccountKey": process.env.DATAMALL_API_KEY! }}
-    );
+    const response = await fetch(url + `?BusStopCode=${busStopCode}`, {
+      headers: { AccountKey: process.env.DATAMALL_API_KEY! },
+    });
     const status = response.status as ContentfulStatusCode;
 
     if (!response.ok) {
-      console.error(response.status, "Error fetching bus timing");
-      const errorResponse = new Response("Error fetching bus timings")
+      console.error(response.status, 'Error fetching bus timing');
+      const errorResponse = new Response('Error fetching bus timings');
       throw new HTTPException(status, { res: errorResponse });
     }
 
     const data = await response.json();
     return c.json(data);
-
   } catch (error) {
-      console.error("Error fetching bus timings: ", error);
-      const errorResponse = new Response("LTA bus timing error");
-      throw new HTTPException(502, { res: errorResponse});
+    console.error('Error fetching bus timings: ', error);
+    const errorResponse = new Response('LTA bus timing error');
+    throw new HTTPException(502, { res: errorResponse });
   }
-})
+});
 
 app.get('/nearest-bus-stop', async (c) => {
   const { latitude, longitude } = c.req.query();
 
   let nearestBusStopCode = null;
   let nearestBusStopName = null;
+  let nearestBusStopServiceNos = null;
   let nearestBusStopDistance = null;
 
-  for (const busStop of busStops.busStops) {
+  for (const busStop of busStops) {
     const busStopLat = busStop.Latitude;
     const busStopLon = busStop.Longitude;
 
-    const distance = getDistance(parseFloat(latitude), parseFloat(longitude), busStopLat, busStopLon);
+    const distance = getDistance(
+      parseFloat(latitude),
+      parseFloat(longitude),
+      busStopLat,
+      busStopLon,
+    );
 
     if (nearestBusStopDistance == null || distance < nearestBusStopDistance) {
       nearestBusStopCode = busStop.BusStopCode;
       nearestBusStopName = busStop.Description;
+      nearestBusStopServiceNos = busStop.ServiceNos;
       nearestBusStopDistance = distance;
     }
   }
 
   return c.json({
     nearestBusStopCode: nearestBusStopCode,
-    nearestBusStopName: nearestBusStopName
-  })
-})
+    nearestBusStopName: nearestBusStopName,
+    nearestBusStopServiceNos: nearestBusStopServiceNos,
+  });
+});
 
 // app.onError((err, c) => {
 //   if (err instanceof HTTPException) {
@@ -75,10 +81,12 @@ app.get('/nearest-bus-stop', async (c) => {
 //   return c.text('Internal Server Error', 500)
 // })
 
-
-serve({
-  fetch: app.fetch,
-  port: 3000
-}, (info) => {
-  console.log(`Server is running on http://localhost:${info.port}`)
-})
+serve(
+  {
+    fetch: app.fetch,
+    port: 3000,
+  },
+  (info) => {
+    console.log(`Server is running on http://localhost:${info.port}`);
+  },
+);
