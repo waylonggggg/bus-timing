@@ -3,7 +3,7 @@ import type {
   BusStopTimings,
   BusTimingResponse,
   NextBusDetails,
-  BusArrivalInfo
+  BusArrivalInfo,
 } from './types/bus';
 
 const parseTiming = (estimatedArrival: string) => {
@@ -22,42 +22,46 @@ const parseBusInfo = (nextBusDetails: NextBusDetails): BusArrivalInfo => {
 
   return {
     timing: timing,
-    load: load
+    load: load,
   };
 };
 
 export function cleanData(
   data: BusTimingResponse,
-  serviceNos: string[]
+  serviceNos: string[],
 ): BusStopTimings {
-  const cleaned: BusServiceInfo[] = data.Services.map(busService => {
-    return {
+  const seen = new Set();
+  const cleanedData: BusServiceInfo[] = [];
+
+  data.Services.forEach((busService) => {
+    seen.add(busService.ServiceNo);
+    cleanedData.push({
       serviceNo: busService.ServiceNo,
       nextBusOne: parseBusInfo(busService.NextBus),
       nextBusTwo: parseBusInfo(busService.NextBus2),
-      nextBusThree: parseBusInfo(busService.NextBus3)
-    };
+      nextBusThree: parseBusInfo(busService.NextBus3),
+    });
   });
 
-  // O(n^2)
+  // O(n)
   for (const serviceNo of serviceNos) {
-    if (cleaned.find(service => service.serviceNo == serviceNo)) continue;
-    cleaned.push({
+    if (seen.has(serviceNo)) continue;
+    cleanedData.push({
       serviceNo: serviceNo,
       nextBusOne: { timing: '-', load: '-' },
       nextBusTwo: { timing: '-', load: '-' },
-      nextBusThree: { timing: '-', load: '-' }
+      nextBusThree: { timing: '-', load: '-' },
     });
   }
 
   // O(nlgn)
   return {
     busStopCode: data.BusStopCode,
-    busServices: cleaned.sort((a, b) =>
+    busServices: cleanedData.sort((a, b) =>
       a.serviceNo.localeCompare(b.serviceNo, 'en', {
         numeric: true,
-        sensitivity: 'base'
-      })
-    )
+        sensitivity: 'base',
+      }),
+    ),
   };
 }
