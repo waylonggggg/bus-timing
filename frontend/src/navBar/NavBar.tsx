@@ -1,5 +1,3 @@
-'use client';
-
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -7,6 +5,7 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
+import { NavLink } from 'react-router';
 
 export default function NavBar() {
   return (
@@ -14,12 +13,12 @@ export default function NavBar() {
       <NavigationMenuList>
         <NavigationMenuItem>
           <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-            <a href='/'>Home</a>
+            <NavLink to='/'>Home</NavLink>
           </NavigationMenuLink>
         </NavigationMenuItem>
         <NavigationMenuItem>
           <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-            <a href='/'>Favourites</a>
+            <NavLink to='/favourites'>Favourites</NavLink>
           </NavigationMenuLink>
         </NavigationMenuItem>
       </NavigationMenuList>
