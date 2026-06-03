@@ -22,7 +22,7 @@ async function fetchBusStops() {
 
     try {
       const response = await fetch(url.toString(), {
-        headers: { AccountKey: 'jT5AHAazSsCYEVG15qSLYQ==' },
+        headers: { AccountKey: process.env.DATAMALL_API_KEY! },
       });
 
       if (!response.ok) {
@@ -75,7 +75,7 @@ async function fetchBusRoutes() {
       if (skips != 0) url.searchParams.append('$skip', skips.toString());
 
       const response = await fetch(url, {
-        headers: { AccountKey: 'jT5AHAazSsCYEVG15qSLYQ==' },
+        headers: { AccountKey: process.env.DATAMALL_API_KEY! },
       });
 
       if (!response.ok) {
