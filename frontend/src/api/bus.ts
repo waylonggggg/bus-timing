@@ -1,7 +1,7 @@
 import type {
-  BusTimingResponse,
   NearestBusStopResponse,
   Coordinates,
+  BusStopTimings,
 } from '@/types/bus';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -25,7 +25,7 @@ export async function fetchNearestBusStop(
 
 export async function fetchBusTiming(
   nearestBusStopCode: string,
-): Promise<BusTimingResponse> {
+): Promise<BusStopTimings> {
   const url = new URL(BACKEND_URL + '/bus-timings');
   url.searchParams.append('busStopCode', nearestBusStopCode);
 

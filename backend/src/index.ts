@@ -5,7 +5,8 @@ import 'dotenv/config';
 import { HTTPException } from 'hono/http-exception';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import busStops from './data/bus_stops.json' with { type: 'json' };
-import { getDistance } from './utils.js';
+import { cleanData, getDistance } from './utils.js';
+import type { BusStopTimings, BusTimingResponse } from './types.js';
 
 const app = new Hono().basePath('/api');
 
@@ -28,8 +29,9 @@ app.get('/bus-timings', async (c) => {
       throw new HTTPException(status, { res: errorResponse });
     }
 
-    const data = await response.json();
-    return c.json(data);
+    const data: BusTimingResponse = await response.json();
+    const cleanedData: BusStopTimings = cleanData(data, busStops);
+    return c.json(cleanedData);
   } catch (error) {
     console.error('Error fetching bus timings: ', error);
     const errorResponse = new Response('LTA bus timing error');
@@ -41,8 +43,6 @@ app.get('/nearest-bus-stop', async (c) => {
   const { latitude, longitude } = c.req.query();
 
   let nearestBusStopCode = null;
-  let nearestBusStopName = null;
-  let nearestBusStopServiceNos = null;
   let nearestBusStopDistance = null;
 
   for (const busStop of busStops) {
@@ -58,16 +58,12 @@ app.get('/nearest-bus-stop', async (c) => {
 
     if (nearestBusStopDistance == null || distance < nearestBusStopDistance) {
       nearestBusStopCode = busStop.BusStopCode;
-      nearestBusStopName = busStop.Description;
-      nearestBusStopServiceNos = busStop.ServiceNos;
       nearestBusStopDistance = distance;
     }
   }
 
   return c.json({
     nearestBusStopCode: nearestBusStopCode,
-    nearestBusStopName: nearestBusStopName,
-    nearestBusStopServiceNos: nearestBusStopServiceNos,
   });
 });
 

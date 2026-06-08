@@ -1,6 +1,12 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import 'dotenv/config';
+import type {
+  BusTimingResponse,
+  BusStopTimings,
+  BusServiceInfo,
+  NextBusDetails,
+  BusArrivalInfo,
+  BusStopJson,
+} from './types.js';
 
 export function getDistance(
   lat1: number,
@@ -26,4 +32,79 @@ export function getDistance(
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
   return earthRadius * c;
+}
+
+const parseTiming = (estimatedArrival: string) => {
+  const nowTime = new Date().getTime();
+  const arrivalTime = new Date(estimatedArrival).getTime();
+
+  const timing = Math.floor((arrivalTime - nowTime) / 1000 / 60);
+  return timing <= 0 ? 'Arr' : timing;
+};
+
+const parseBusInfo = (nextBusDetails: NextBusDetails): BusArrivalInfo => {
+  const timing = nextBusDetails.EstimatedArrival
+    ? parseTiming(nextBusDetails.EstimatedArrival)
+    : '-';
+  const load = nextBusDetails.Load ? nextBusDetails.Load : '-';
+
+  return {
+    timing: timing,
+    load: load,
+  };
+};
+
+export function cleanData(
+  data: BusTimingResponse,
+  busStopJson: BusStopJson[],
+): BusStopTimings {
+  const seen = new Set();
+  const cleanedData: BusServiceInfo[] = [];
+
+  data.Services.forEach((busService) => {
+    seen.add(busService.ServiceNo);
+    cleanedData.push({
+      serviceNo: busService.ServiceNo,
+      nextBusOne: parseBusInfo(busService.NextBus),
+      nextBusTwo: parseBusInfo(busService.NextBus2),
+      nextBusThree: parseBusInfo(busService.NextBus3),
+    });
+  });
+
+  const { busStopName, serviceNos } = getNameAndServiceNos(
+    data.BusStopCode,
+    busStopJson,
+  );
+  // O(n)
+  for (const serviceNo of serviceNos) {
+    if (seen.has(serviceNo)) continue;
+    cleanedData.push({
+      serviceNo: serviceNo,
+      nextBusOne: { timing: '-', load: '-' },
+      nextBusTwo: { timing: '-', load: '-' },
+      nextBusThree: { timing: '-', load: '-' },
+    });
+  }
+
+  // O(nlgn)
+  return {
+    busStopCode: data.BusStopCode,
+    busStopName: busStopName,
+    busServices: cleanedData.sort((a, b) =>
+      a.serviceNo.localeCompare(b.serviceNo, 'en', {
+        numeric: true,
+        sensitivity: 'base',
+      }),
+    ),
+  };
+}
+
+function getNameAndServiceNos(busStopCode: string, busStopJson: BusStopJson[]) {
+  const busStop = busStopJson.find(
+    (busStop) => busStop.BusStopCode === busStopCode,
+  )!;
+  return {
+    busStopName: busStop.Description,
+    serviceNos: busStop.ServiceNos,
+  };
 }

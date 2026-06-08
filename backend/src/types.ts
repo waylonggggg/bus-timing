@@ -4,10 +4,6 @@ export type BusTimingResponse = {
   Services: BusService[];
 };
 
-export type NearestBusStopResponse = {
-  nearestBusStopCode: string;
-};
-
 type BusService = {
   ServiceNo: string;
   Operator: string;
@@ -47,7 +43,11 @@ export type BusArrivalInfo = {
   load: 'SEA' | 'SDA' | 'LSD' | '-';
 };
 
-export type Coordinates = {
-  latitude: number;
-  longitude: number;
+export type BusStopJson = {
+  BusStopCode: string;
+  RoadName: string;
+  Description: string;
+  Latitude: number;
+  Longitude: number;
+  ServiceNos: string[];
 };

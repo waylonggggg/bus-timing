@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import BusStopList from '@/BusStopTiming/BusStopList';
+import BusStopList from '@/busStopTiming/BusStopList';
 import type {
-  BusTimingResponse,
   BusStopTimings,
   NearestBusStopResponse,
-  Coordinates
+  Coordinates,
 } from '@/types/bus';
-import { cleanData } from '@/utils';
 import { fetchNearestBusStop, fetchBusTiming } from '../api/bus';
 import SkeletonLoader from '@/SkeletonLoader';
 import ErrorAlert from '@/ErrorAlert';
@@ -14,7 +12,6 @@ import ErrorAlert from '@/ErrorAlert';
 export default function BusTiming() {
   const [busTiming, setBusTiming] = useState<BusStopTimings>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [nearestBusStopName, setNearestBusStopName] = useState<string>();
   useState<string[]>();
   const [error, setError] = useState<string>();
   const isFirstSuccessfulLoad = useRef<boolean>(null);
@@ -30,17 +27,11 @@ export default function BusTiming() {
     try {
       const nearestBusStop: NearestBusStopResponse =
         await fetchNearestBusStop(coords);
-      const {
-        nearestBusStopCode,
-        nearestBusStopName,
-        nearestBusStopServiceNos
-      } = nearestBusStop;
-      setNearestBusStopName(nearestBusStopName);
+      const { nearestBusStopCode } = nearestBusStop;
 
-      const busTimingData: BusTimingResponse =
+      const busTimingData: BusStopTimings =
         await fetchBusTiming(nearestBusStopCode);
-      const cleanedData = cleanData(busTimingData, nearestBusStopServiceNos);
-      setBusTiming(cleanedData);
+      setBusTiming(busTimingData);
 
       if (!isFirstSuccessfulLoad.current) {
         isFirstSuccessfulLoad.current = true;
@@ -69,7 +60,7 @@ export default function BusTiming() {
     setError('');
     const coords: Coordinates = {
       latitude: pos.coords.latitude,
-      longitude: pos.coords.longitude
+      longitude: pos.coords.longitude,
     };
     loadBusTiming(coords);
   };
@@ -86,13 +77,29 @@ export default function BusTiming() {
     // setIsLoading(false)
   };
 
-  const handleClick = () => {
+  const handleRefreshBusTimings = () => {
     console.log('manually fetching');
     navigator.geolocation.getCurrentPosition(getPosSuccess, getPosError, {
       enableHighAccuracy: false,
       timeout: 30000,
-      maximumAge: 60000
+      maximumAge: 60000,
     });
+  };
+
+  const handleAddToFavourites = (busStopCode: string) => {
+    const favouritedBusStops = JSON.parse(
+      localStorage.getItem('favourites') ?? '[]',
+    );
+
+    if (favouritedBusStops.includes(busStopCode)) {
+      const updated = favouritedBusStops.filter(
+        (busStop: string) => busStop != busStopCode,
+      );
+      localStorage.setItem('favourites', JSON.stringify(updated));
+    } else {
+      favouritedBusStops.push(busStopCode);
+      localStorage.setItem('favourites', JSON.stringify(favouritedBusStops));
+    }
   };
 
   useEffect(() => {
@@ -105,7 +112,7 @@ export default function BusTiming() {
       navigator.geolocation.getCurrentPosition(getPosSuccess, getPosError, {
         enableHighAccuracy: false,
         timeout: 30000,
-        maximumAge: 60000
+        maximumAge: 60000,
       });
 
       timeoutId = setTimeout(loadBusTimingLoop, 30000);
@@ -124,9 +131,9 @@ export default function BusTiming() {
 
   return (
     <BusStopList
-      busStopName={nearestBusStopName!}
       busTimingData={busTiming!}
-      handleClick={handleClick}
+      handleRefreshBusTiming={handleRefreshBusTimings}
+      handleAddToFavourites={handleAddToFavourites}
     />
   );
 }
