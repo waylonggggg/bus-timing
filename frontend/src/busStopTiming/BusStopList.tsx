@@ -11,8 +11,8 @@ const loadColor: Record<'SEA' | 'SDA' | 'LSD' | '-', string> = {
 
 type BusStopListProps = {
   busTimingData: BusStopTimings;
-  handleRefreshBusTiming: () => void;
-  handleAddToFavourites: (busStopCode: string) => void;
+  handleRefreshBusTiming?: () => void;
+  handleAddToFavourites?: (busStopCode: string) => void;
 };
 
 export default function BusStopList({
@@ -51,18 +51,22 @@ export default function BusStopList({
           );
         })}
       </div>
-      <Button
-        onClick={() => handleAddToFavourites(busTimingData.busStopCode)}
-        className='fixed bottom-10 left-10 size-12 rounded-full cursor-pointer'
-      >
-        <Star />
-      </Button>
-      <Button
-        onClick={handleRefreshBusTiming}
-        className='fixed bottom-10 right-10 size-12 rounded-full cursor-pointer'
-      >
-        <LocateFixedIcon />
-      </Button>
+      {handleAddToFavourites && (
+        <Button
+          onClick={() => handleAddToFavourites(busTimingData.busStopCode)}
+          className='fixed bottom-10 left-10 size-12 rounded-full cursor-pointer'
+        >
+          <Star />
+        </Button>
+      )}
+      {handleRefreshBusTiming && (
+        <Button
+          onClick={handleRefreshBusTiming}
+          className='fixed bottom-10 right-10 size-12 rounded-full cursor-pointer'
+        >
+          <LocateFixedIcon />
+        </Button>
+      )}
     </div>
   );
 }
