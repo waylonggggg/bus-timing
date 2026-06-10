@@ -3,10 +3,10 @@ import SkeletonLoader from '@/SkeletonLoader';
 import { useEffect, useState } from 'react';
 import type { BusStopTimings } from '@/types/bus';
 import { fetchBusTiming } from '@/api/bus';
-import BusStopList from '@/busStopTiming/BusStopList';
+import BusStopAccordion from './BusStopAccordion';
 
 export default function Favourites() {
-  const [busTiming, setBusTiming] = useState<BusStopTimings>();
+  const [busTiming, setBusTiming] = useState<BusStopTimings[]>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>();
   const [favourites, setFavourites] = useState<string[]>(() =>
@@ -19,7 +19,7 @@ export default function Favourites() {
     const fetchFavourites = async () => {
       try {
         const data = await fetchBusTiming(favourites[0]);
-        setBusTiming(data);
+        setBusTiming([data]);
         console.log('Data: ', data);
       } catch (error) {
         if (error instanceof Error) {
@@ -40,5 +40,5 @@ export default function Favourites() {
 
   if (isLoading) return <SkeletonLoader />;
 
-  return <BusStopList busTimingData={busTiming!} />;
+  return <BusStopAccordion busTimingsData={busTiming!} />;
 }
