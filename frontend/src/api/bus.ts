@@ -2,6 +2,7 @@ import type {
   NearestBusStopResponse,
   Coordinates,
   BusStopTimings,
+  BusMetadataResponse,
 } from '@/types/bus';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -24,15 +25,30 @@ export async function fetchNearestBusStop(
 }
 
 export async function fetchBusTiming(
-  nearestBusStopCode: string,
+  busStopCode: string,
 ): Promise<BusStopTimings> {
   const url = new URL(BACKEND_URL + '/bus-timings');
-  url.searchParams.append('busStopCode', nearestBusStopCode);
+  url.searchParams.append('busStopCode', busStopCode);
 
   const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error('Error fetching bus timings');
+  }
+
+  const data = await response.json();
+  return data;
+}
+
+export async function fetchBusMetadata(
+  busStopCode: string,
+): Promise<BusMetadataResponse> {
+  const url = new URL(BACKEND_URL + `/${busStopCode}/services`);
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error('Error fetching bus services');
   }
 
   const data = await response.json();

@@ -8,6 +8,12 @@ export type NearestBusStopResponse = {
   nearestBusStopCode: string;
 };
 
+export type BusMetadataResponse = {
+  busStopName: string;
+  busStopCode: string;
+  serviceNos: string[];
+};
+
 type BusService = {
   ServiceNo: string;
   Operator: string;

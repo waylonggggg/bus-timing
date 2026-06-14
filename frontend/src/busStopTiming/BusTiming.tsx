@@ -4,14 +4,22 @@ import type {
   BusStopTimings,
   NearestBusStopResponse,
   Coordinates,
+  BusMetadataResponse,
 } from '@/types/bus';
-import { fetchNearestBusStop, fetchBusTiming } from '../api/bus';
-import SkeletonLoader from '@/SkeletonLoader';
+import {
+  fetchNearestBusStop,
+  fetchBusTiming,
+  fetchBusMetadata,
+} from '../api/bus';
+import SkeletonLoader from '@/skeletonLoader';
+import Spinner from '@/spinner';
 import ErrorAlert from '@/ErrorAlert';
 
 export default function BusTiming() {
+  const [busMetadata, setBusMetadata] = useState<BusMetadataResponse>();
   const [busTiming, setBusTiming] = useState<BusStopTimings>();
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoadingServices, setIsLoadingServices] = useState<boolean>(true);
+  const [isLoadingTimings, setIsLoadingTimings] = useState<boolean>(true);
   useState<string[]>();
   const [error, setError] = useState<string>();
   const isFirstSuccessfulLoad = useRef<boolean>(null);
@@ -29,9 +37,18 @@ export default function BusTiming() {
         await fetchNearestBusStop(coords);
       const { nearestBusStopCode } = nearestBusStop;
 
+      const busMetadataData: BusMetadataResponse =
+        await fetchBusMetadata(nearestBusStopCode);
+      setBusMetadata(busMetadataData);
+      setIsLoadingServices(false);
+
+      if (!isFirstSuccessfulLoad.current) {
+        setIsLoadingTimings(true);
+      }
       const busTimingData: BusStopTimings =
         await fetchBusTiming(nearestBusStopCode);
       setBusTiming(busTimingData);
+      console.log('set bus timing');
 
       if (!isFirstSuccessfulLoad.current) {
         isFirstSuccessfulLoad.current = true;
@@ -48,7 +65,7 @@ export default function BusTiming() {
         return;
       }
     } finally {
-      setIsLoading(false);
+      setIsLoadingTimings(false);
     }
   };
 
@@ -127,7 +144,9 @@ export default function BusTiming() {
 
   if (error) return <ErrorAlert errorDescription={error} />;
 
-  if (isLoading) return <SkeletonLoader />;
+  if (isLoadingServices) return <Spinner message='Loading mf' />;
+
+  if (isLoadingTimings) return <SkeletonLoader busMetadata={busMetadata!} />;
 
   return (
     <BusStopList
