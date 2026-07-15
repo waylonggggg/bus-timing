@@ -5,6 +5,7 @@ import type {
   NearestBusStopResponse,
   Coordinates,
   BusMetadataResponse,
+  FavouritedBusStop,
 } from '@/types/bus';
 import {
   fetchNearestBusStop,
@@ -19,7 +20,7 @@ export default function BusTiming() {
   const [busMetadata, setBusMetadata] = useState<BusMetadataResponse>();
   const [busTiming, setBusTiming] = useState<BusStopTimings>();
   const [isLoadingServices, setIsLoadingServices] = useState<boolean>(true);
-  const [isLoadingTimings, setIsLoadingTimings] = useState<boolean>(true);
+  const [isLoadingTimings, setIsLoadingTimings] = useState<boolean>(false);
   useState<string[]>();
   const [error, setError] = useState<string>();
   const isFirstSuccessfulLoad = useRef<boolean>(null);
@@ -103,18 +104,26 @@ export default function BusTiming() {
     });
   };
 
-  const handleAddToFavourites = (busStopCode: string) => {
-    const favouritedBusStops = JSON.parse(
+  const handleAddToFavourites = (busStopCode: string, busStopName: string) => {
+    const favouritedBusStops: FavouritedBusStop[] = JSON.parse(
       localStorage.getItem('favourites') ?? '[]',
     );
 
-    if (favouritedBusStops.includes(busStopCode)) {
+    if (
+      favouritedBusStops.some(
+        (favourite) => favourite.busStopCode === busStopCode,
+      )
+    ) {
       const updated = favouritedBusStops.filter(
-        (busStop: string) => busStop != busStopCode,
+        (favourited) => favourited.busStopCode != busStopCode,
       );
       localStorage.setItem('favourites', JSON.stringify(updated));
     } else {
-      favouritedBusStops.push(busStopCode);
+      const favourite = {
+        busStopCode: busStopCode,
+        busStopName: busStopName,
+      };
+      favouritedBusStops.push(favourite);
       localStorage.setItem('favourites', JSON.stringify(favouritedBusStops));
     }
   };

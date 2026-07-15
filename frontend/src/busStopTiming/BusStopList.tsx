@@ -12,7 +12,7 @@ const loadColor: Record<'SEA' | 'SDA' | 'LSD' | '-', string> = {
 type BusStopListProps = {
   busTimingData: BusStopTimings;
   handleRefreshBusTiming?: () => void;
-  handleAddToFavourites?: (busStopCode: string) => void;
+  handleAddToFavourites?: (busStopCode: string, busStopName: string) => void;
 };
 
 export default function BusStopList({
@@ -53,7 +53,12 @@ export default function BusStopList({
       </div>
       {handleAddToFavourites && (
         <Button
-          onClick={() => handleAddToFavourites(busTimingData.busStopCode)}
+          onClick={() =>
+            handleAddToFavourites(
+              busTimingData.busStopCode,
+              busTimingData.busStopName,
+            )
+          }
           className='fixed bottom-10 left-10 size-12 rounded-full cursor-pointer'
         >
           <Star />
